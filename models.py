@@ -73,4 +73,4 @@ def connect_db(app):
     db.app = app
     db.init_app(app)
     
-    app.jinja_env.filters['format_datetime'] = db.Model.__mapper__.get_property('friendly_date').value_processor
+    # app.jinja_env.filters['format_datetime'] = db.Model.__mapper__.get_property('friendly_date').value_processor

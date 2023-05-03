@@ -1,18 +1,36 @@
 from flask import Flask, request, redirect, render_template, flash
+from flask_migrate import Migrate
 from models import db, connect_db, User, Post, Tag
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///blogly'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///blogly3.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ECHO'] = True
 app.config['SECRET_KEY'] = "SECRET!"
 
 connect_db(app)
 
+# Initialize Flask-Migrate
+migrate = Migrate(app, db)
+
+# Import migration commands to the Flask CLI
+from flask.cli import with_appcontext
+from flask_migrate import init, migrate, upgrade
+
+@app.cli.command("db_create")
+def db_create():
+    db.create_all()
+    print('Database created!')
+
+@app.cli.command("db_drop")
+def db_drop():
+    db.drop_all()
+    print('Database dropped!')
+
 @app.route('/')
 def show_home_page():
     posts = Post.query.order_by(Post.created_at.desc()).limit(5).all()
-    return render_template('home.html', posts=posts)
+    return render_template("posts/homepage.html", posts=posts)
 
 @app.errorhandler(404)
 def not_found(error):
@@ -21,8 +39,6 @@ def not_found(error):
 if __name__ == '__main__':
     app.run(debug=True)
 
-
-##############################################################################
 # User route
 
 @app.route('/users')
@@ -99,8 +115,6 @@ def users_destroy(user_id):
 
     return redirect("/users")
 
-
-##############################################################################
 # Posts route
 
 
@@ -181,7 +195,6 @@ def posts_destroy(post_id):
     return redirect(f"/users/{post.user_id}")
 
 
-##############################################################################
 # Tags route
 
 
